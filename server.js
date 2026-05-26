@@ -17,86 +17,159 @@ app.set("views", path.join(__dirname, "views"));
 
 app.use(express.static("public"));
 
-app.get("/", (req, res) => {
+app.use(express.urlencoded({ extended:true }));
 
-    res.render("user");
+// LOGIN USERS
+let users = [
+{
+username:"admin",
+password:"12345"
+},
+{
+username:"user",
+password:"123"
+}
+];
+
+// LOGIN PAGE
+app.get("/", (req,res)=>{
+
+res.render("login");
 
 });
 
+// LOGIN CHECK
+app.post("/login",(req,res)=>{
+
+const { username,password } = req.body;
+
+const user = users.find(
+u =>
+u.username === username &&
+u.password === password
+);
+
+if(user){
+
+if(username === "admin"){
+
+res.redirect("/admin?password=12345");
+
+}else{
+
+res.render("user");
+
+}
+
+}else{
+
+res.send("Wrong Username or Password");
+
+}
+
+});
+
+// ADMIN PAGE
 app.get("/admin", (req, res) => {
 
-    const password = req.query.password;
+const password = req.query.password;
 
-    if(password === "12345"){
+if(password === "12345"){
 
-        res.render("admin");
+res.render("admin");
 
-    }else{
+}else{
 
-        res.send("Wrong Password");
+res.send("Wrong Password");
 
-    }
+}
 
 });
 
+// SOCKET
 io.on("connection", (socket)=>{
 
-    console.log("User Connected");
+console.log("User Connected");
 
-    onlineUsers++;
+onlineUsers++;
 
-    io.emit("onlineUsers", onlineUsers);
+io.emit(
+"onlineUsers",
+onlineUsers
+);
 
-    socket.on("newMessage", (data)=>{
+// TEXT MESSAGE
+socket.on("newMessage", (data)=>{
 
-        io.emit("newMessage", data);
-
-    });
-
-    socket.on("newImage", (data)=>{
-
-        io.emit("newImage", data);
-
-    });
-
-    socket.on("newVoice", (data)=>{
-
-        io.emit("newVoice", data);
-
-    });
-
-    socket.on("typing", ()=>{
-
-        socket.broadcast.emit(
-            "typing",
-            "Typing..."
-        );
-
-    });
-
-    socket.on("messageSeen", ()=>{
-
-        socket.broadcast.emit("seen");
-
-    });
-
-    socket.on("disconnect", ()=>{
-
-        onlineUsers--;
-
-        io.emit(
-            "onlineUsers",
-            onlineUsers
-        );
-
-    });
+io.emit(
+"newMessage",
+data
+);
 
 });
 
+// IMAGE MESSAGE
+socket.on("newImage", (data)=>{
+
+io.emit(
+"newImage",
+data
+);
+
+});
+
+// VOICE MESSAGE
+socket.on("newVoice", (data)=>{
+
+io.emit(
+"newVoice",
+data
+);
+
+});
+
+// TYPING
+socket.on("typing", ()=>{
+
+socket.broadcast.emit(
+"typing",
+"Typing..."
+);
+
+});
+
+// SEEN
+socket.on("messageSeen", ()=>{
+
+socket.broadcast.emit(
+"seen"
+);
+
+});
+
+// DISCONNECT
+socket.on("disconnect", ()=>{
+
+onlineUsers--;
+
+io.emit(
+"onlineUsers",
+onlineUsers
+);
+
+console.log(
+"User Disconnected"
+);
+
+});
+
+});
+
+// SERVER START
 server.listen(3000, ()=>{
 
-    console.log(
-        "Server running on http://localhost:3000"
-    );
+console.log(
+"Server running on http://localhost:3000"
+);
 
 });
