@@ -185,7 +185,7 @@ const socket = io();
 
 let mediaRecorder;
 
-let audioChunks=[];
+let audioChunks = [];
 
 const messages =
 document.getElementById("messages");
@@ -213,7 +213,7 @@ function sendMessage(){
 
 let msg = msgInput.value;
 
-if(msg.trim()!=""){
+if(msg.trim() !== ""){
 
 socket.emit(
 "newMessage",
@@ -358,7 +358,6 @@ div.classList.add("user");
 div.innerHTML =
 `
 ${data.message}
-
 <small>${data.time}</small>
 `;
 
@@ -388,7 +387,6 @@ div.classList.add("user");
 div.innerHTML =
 `
 <img src="${data.image}">
-
 <small>${data.time}</small>
 `;
 
@@ -420,7 +418,6 @@ div.innerHTML =
 <audio controls>
 <source src="${data.audio}">
 </audio>
-
 <small>${data.time}</small>
 `;
 
