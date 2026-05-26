@@ -19,18 +19,6 @@ app.use(express.static("public"));
 
 app.use(express.urlencoded({ extended:true }));
 
-// LOGIN USERS
-let users = [
-{
-username:"admin",
-password:"12345"
-},
-{
-username:"user",
-password:"123"
-}
-];
-
 // LOGIN PAGE
 app.get("/", (req,res)=>{
 
@@ -43,25 +31,28 @@ app.post("/login",(req,res)=>{
 
 const { username,password } = req.body;
 
-const user = users.find(
-u =>
-u.username === username &&
-u.password === password
-);
+// ADMIN LOGIN
+if(
+username === "admin" &&
+password === "12345"
+){
 
-if(user){
+res.redirect("/admin");
 
-if(username === "admin"){
+}
 
-res.redirect("/admin?password=12345");
-
-}else{
+// USER LOGIN
+else if(
+username === "user" &&
+password === "123"
+){
 
 res.render("user");
 
 }
 
-}else{
+// WRONG LOGIN
+else{
 
 res.send("Wrong Username or Password");
 
@@ -70,24 +61,14 @@ res.send("Wrong Username or Password");
 });
 
 // ADMIN PAGE
-app.get("/admin", (req, res) => {
-
-const password = req.query.password;
-
-if(password === "12345"){
+app.get("/admin",(req,res)=>{
 
 res.render("admin");
-
-}else{
-
-res.send("Wrong Password");
-
-}
 
 });
 
 // SOCKET
-io.on("connection", (socket)=>{
+io.on("connection",(socket)=>{
 
 console.log("User Connected");
 
@@ -99,7 +80,7 @@ onlineUsers
 );
 
 // TEXT MESSAGE
-socket.on("newMessage", (data)=>{
+socket.on("newMessage",(data)=>{
 
 io.emit(
 "newMessage",
@@ -109,7 +90,7 @@ data
 });
 
 // IMAGE MESSAGE
-socket.on("newImage", (data)=>{
+socket.on("newImage",(data)=>{
 
 io.emit(
 "newImage",
@@ -119,7 +100,7 @@ data
 });
 
 // VOICE MESSAGE
-socket.on("newVoice", (data)=>{
+socket.on("newVoice",(data)=>{
 
 io.emit(
 "newVoice",
@@ -129,7 +110,7 @@ data
 });
 
 // TYPING
-socket.on("typing", ()=>{
+socket.on("typing",()=>{
 
 socket.broadcast.emit(
 "typing",
@@ -139,7 +120,7 @@ socket.broadcast.emit(
 });
 
 // SEEN
-socket.on("messageSeen", ()=>{
+socket.on("messageSeen",()=>{
 
 socket.broadcast.emit(
 "seen"
@@ -148,7 +129,7 @@ socket.broadcast.emit(
 });
 
 // DISCONNECT
-socket.on("disconnect", ()=>{
+socket.on("disconnect",()=>{
 
 onlineUsers--;
 
@@ -166,10 +147,13 @@ console.log(
 });
 
 // SERVER START
-server.listen(3000, ()=>{
+const PORT =
+process.env.PORT || 3000;
+
+server.listen(PORT,()=>{
 
 console.log(
-"Server running on http://localhost:3000"
+`Server running on port ${PORT}`
 );
 
 });
