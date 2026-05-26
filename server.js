@@ -15,21 +15,6 @@ app.set("views",path.join(__dirname,"views"));
 app.use(express.static("public"));
 app.use(express.urlencoded({extended:true}));
 
-// LOGIN USERS
-let users=[
-
-{
-username:"admin",
-password:"12345"
-},
-
-{
-username:"user",
-password:"123"
-}
-
-];
-
 // LOGIN PAGE
 app.get("/",(req,res)=>{
 
@@ -40,40 +25,45 @@ res.render("login");
 // LOGIN CHECK
 app.post("/login",(req,res)=>{
 
-const {username,password}=req.body;
+const { username,password }=req.body;
 
-const user=users.find(
-u=>
-u.username===username &&
-u.password===password
-);
+// ADMIN LOGIN
+if(
+username==="admin" &&
+password==="12345"
+){
 
-if(user){
-
-if(username==="admin"){
-
-res.render("admin");
-
-}else{
-
-res.render("user");
+return res.render("admin");
 
 }
 
-}else{
+// USER LOGIN
+if(
+username==="user" &&
+password==="123"
+){
+
+return res.render("user");
+
+}
 
 res.send(
 "Wrong Username or Password"
 );
 
-}
-
 });
 
-// ADMIN PAGE DIRECT
+// ADMIN PAGE
 app.get("/admin",(req,res)=>{
 
 res.render("admin");
+
+});
+
+// USER PAGE
+app.get("/user",(req,res)=>{
+
+res.render("user");
 
 });
 
@@ -91,50 +81,38 @@ io.emit(
 onlineUsers
 );
 
-// TEXT MESSAGE
+// TEXT
 socket.on(
 "newMessage",
 (data)=>{
 
 io.emit(
 "newMessage",
-{
-message:data,
-time:new Date()
-.toLocaleTimeString()
-}
+data
 );
 
 });
 
-// IMAGE MESSAGE
+// IMAGE
 socket.on(
 "newImage",
 (data)=>{
 
 io.emit(
 "newImage",
-{
-image:data,
-time:new Date()
-.toLocaleTimeString()
-}
+data
 );
 
 });
 
-// VOICE MESSAGE
+// VOICE
 socket.on(
 "newVoice",
 (data)=>{
 
 io.emit(
 "newVoice",
-{
-audio:data,
-time:new Date()
-.toLocaleTimeString()
-}
+data
 );
 
 });
@@ -182,7 +160,6 @@ console.log(
 
 });
 
-// START SERVER
 server.listen(
 3000,
 ()=>{
