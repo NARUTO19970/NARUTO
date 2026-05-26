@@ -15,7 +15,7 @@ app.set("views",path.join(__dirname,"views"));
 app.use(express.static("public"));
 app.use(express.urlencoded({extended:true}));
 
-// USERS
+// LOGIN USERS
 let users=[
 
 {
@@ -43,18 +43,16 @@ app.post("/login",(req,res)=>{
 const {username,password}=req.body;
 
 const user=users.find(
-
 u=>
 u.username===username &&
 u.password===password
-
 );
 
 if(user){
 
-if(user.username==="admin"){
+if(username==="admin"){
 
-res.redirect("/admin");
+res.render("admin");
 
 }else{
 
@@ -72,7 +70,7 @@ res.send(
 
 });
 
-// ADMIN PAGE
+// ADMIN PAGE DIRECT
 app.get("/admin",(req,res)=>{
 
 res.render("admin");
@@ -93,38 +91,58 @@ io.emit(
 onlineUsers
 );
 
-// TEXT
-socket.on("newMessage",(data)=>{
+// TEXT MESSAGE
+socket.on(
+"newMessage",
+(data)=>{
 
 io.emit(
 "newMessage",
-data
+{
+message:data,
+time:new Date()
+.toLocaleTimeString()
+}
 );
 
 });
 
-// IMAGE
-socket.on("newImage",(data)=>{
+// IMAGE MESSAGE
+socket.on(
+"newImage",
+(data)=>{
 
 io.emit(
 "newImage",
-data
+{
+image:data,
+time:new Date()
+.toLocaleTimeString()
+}
 );
 
 });
 
-// VOICE
-socket.on("newVoice",(data)=>{
+// VOICE MESSAGE
+socket.on(
+"newVoice",
+(data)=>{
 
 io.emit(
 "newVoice",
-data
+{
+audio:data,
+time:new Date()
+.toLocaleTimeString()
+}
 );
 
 });
 
 // TYPING
-socket.on("typing",()=>{
+socket.on(
+"typing",
+()=>{
 
 socket.broadcast.emit(
 "typing",
@@ -134,7 +152,9 @@ socket.broadcast.emit(
 });
 
 // SEEN
-socket.on("messageSeen",()=>{
+socket.on(
+"messageSeen",
+()=>{
 
 socket.broadcast.emit(
 "seen"
@@ -143,7 +163,9 @@ socket.broadcast.emit(
 });
 
 // DISCONNECT
-socket.on("disconnect",()=>{
+socket.on(
+"disconnect",
+()=>{
 
 onlineUsers--;
 
@@ -166,7 +188,7 @@ server.listen(
 ()=>{
 
 console.log(
-"Server running..."
+"Server running on http://localhost:3000"
 );
 
 });
