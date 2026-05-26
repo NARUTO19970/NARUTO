@@ -1,15 +1,11 @@
 <!DOCTYPE html>
 <html>
-
 <head>
-
 <title>Login</title>
 
 <style>
-
 body{
 margin:0;
-padding:0;
 font-family:Arial;
 background:#ece5dd;
 display:flex;
@@ -18,54 +14,36 @@ align-items:center;
 height:100vh;
 }
 
-.login-box{
-background:white;
+.box{
 width:350px;
-padding:30px;
-border-radius:15px;
-box-shadow:0 0 10px rgba(0,0,0,.2);
-}
-
-h2{
-text-align:center;
-color:#075E54;
+background:white;
+padding:25px;
+border-radius:10px;
 }
 
 input{
 width:100%;
 padding:12px;
-margin-top:15px;
-border:1px solid #ccc;
-border-radius:8px;
-outline:none;
+margin:10px 0;
 box-sizing:border-box;
 }
 
 button{
 width:100%;
 padding:12px;
-margin-top:20px;
-border:none;
-border-radius:8px;
 background:#075E54;
+border:none;
 color:white;
-font-size:16px;
 cursor:pointer;
 }
-
-button:hover{
-background:#128C7E;
-}
-
 </style>
 
 </head>
-
 <body>
 
-<div class="login-box">
+<div class="box">
 
-<h2>WhatsApp Login</h2>
+<h2>Login</h2>
 
 <form action="/login" method="POST">
 
@@ -87,14 +65,7 @@ Login
 
 </form>
 
-<br>
-
-<b>Admin:</b> admin / 12345
-<br><br>
-<b>User:</b> user / 123
-
 </div>
 
 </body>
-
 </html>
