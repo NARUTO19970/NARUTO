@@ -4,35 +4,34 @@ const { Server } = require("socket.io");
 const path = require("path");
 
 const app = express();
-
 const server = http.createServer(app);
-
 const io = new Server(server);
 
 let onlineUsers = 0;
 
-app.set("view engine", "ejs");
-
-app.set("views", path.join(__dirname, "views"));
+app.set("view engine","ejs");
+app.set("views",path.join(__dirname,"views"));
 
 app.use(express.static("public"));
+app.use(express.urlencoded({extended:true}));
 
-app.use(express.urlencoded({ extended:true }));
+// USERS
+let users=[
 
-// LOGIN USERS
-let users = [
 {
 username:"admin",
 password:"12345"
 },
+
 {
 username:"user",
 password:"123"
 }
+
 ];
 
 // LOGIN PAGE
-app.get("/", (req,res)=>{
+app.get("/",(req,res)=>{
 
 res.render("login");
 
@@ -41,19 +40,21 @@ res.render("login");
 // LOGIN CHECK
 app.post("/login",(req,res)=>{
 
-const { username,password } = req.body;
+const {username,password}=req.body;
 
-const user = users.find(
-u =>
-u.username === username &&
-u.password === password
+const user=users.find(
+
+u=>
+u.username===username &&
+u.password===password
+
 );
 
 if(user){
 
-if(username === "admin"){
+if(user.username==="admin"){
 
-res.redirect("/admin?password=12345");
+res.redirect("/admin");
 
 }else{
 
@@ -63,33 +64,27 @@ res.render("user");
 
 }else{
 
-res.send("Wrong Username or Password");
+res.send(
+"Wrong Username or Password"
+);
 
 }
 
 });
 
 // ADMIN PAGE
-app.get("/admin", (req, res) => {
-
-const password = req.query.password;
-
-if(password === "12345"){
+app.get("/admin",(req,res)=>{
 
 res.render("admin");
-
-}else{
-
-res.send("Wrong Password");
-
-}
 
 });
 
 // SOCKET
-io.on("connection", (socket)=>{
+io.on("connection",(socket)=>{
 
-console.log("User Connected");
+console.log(
+"User Connected"
+);
 
 onlineUsers++;
 
@@ -98,8 +93,8 @@ io.emit(
 onlineUsers
 );
 
-// TEXT MESSAGE
-socket.on("newMessage", (data)=>{
+// TEXT
+socket.on("newMessage",(data)=>{
 
 io.emit(
 "newMessage",
@@ -108,8 +103,8 @@ data
 
 });
 
-// IMAGE MESSAGE
-socket.on("newImage", (data)=>{
+// IMAGE
+socket.on("newImage",(data)=>{
 
 io.emit(
 "newImage",
@@ -118,8 +113,8 @@ data
 
 });
 
-// VOICE MESSAGE
-socket.on("newVoice", (data)=>{
+// VOICE
+socket.on("newVoice",(data)=>{
 
 io.emit(
 "newVoice",
@@ -129,7 +124,7 @@ data
 });
 
 // TYPING
-socket.on("typing", ()=>{
+socket.on("typing",()=>{
 
 socket.broadcast.emit(
 "typing",
@@ -139,7 +134,7 @@ socket.broadcast.emit(
 });
 
 // SEEN
-socket.on("messageSeen", ()=>{
+socket.on("messageSeen",()=>{
 
 socket.broadcast.emit(
 "seen"
@@ -148,7 +143,7 @@ socket.broadcast.emit(
 });
 
 // DISCONNECT
-socket.on("disconnect", ()=>{
+socket.on("disconnect",()=>{
 
 onlineUsers--;
 
@@ -165,11 +160,13 @@ console.log(
 
 });
 
-// SERVER START
-server.listen(3000, ()=>{
+// START SERVER
+server.listen(
+3000,
+()=>{
 
 console.log(
-"Server running on http://localhost:3000"
+"Server running..."
 );
 
 });
