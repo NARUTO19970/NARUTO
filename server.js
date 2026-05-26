@@ -31,7 +31,7 @@ app.post("/login",(req,res)=>{
 
 const { username,password } = req.body;
 
-// ADMIN LOGIN
+// ADMIN
 if(
 username === "admin" &&
 password === "12345"
@@ -41,7 +41,7 @@ res.redirect("/admin");
 
 }
 
-// USER LOGIN
+// USER
 else if(
 username === "user" &&
 password === "123"
@@ -70,8 +70,6 @@ res.render("admin");
 // SOCKET
 io.on("connection",(socket)=>{
 
-console.log("User Connected");
-
 onlineUsers++;
 
 io.emit(
@@ -79,7 +77,7 @@ io.emit(
 onlineUsers
 );
 
-// TEXT MESSAGE
+// TEXT
 socket.on("newMessage",(data)=>{
 
 io.emit(
@@ -89,7 +87,7 @@ data
 
 });
 
-// IMAGE MESSAGE
+// IMAGE
 socket.on("newImage",(data)=>{
 
 io.emit(
@@ -99,7 +97,7 @@ data
 
 });
 
-// VOICE MESSAGE
+// VOICE
 socket.on("newVoice",(data)=>{
 
 io.emit(
@@ -119,15 +117,6 @@ socket.broadcast.emit(
 
 });
 
-// SEEN
-socket.on("messageSeen",()=>{
-
-socket.broadcast.emit(
-"seen"
-);
-
-});
-
 // DISCONNECT
 socket.on("disconnect",()=>{
 
@@ -138,15 +127,10 @@ io.emit(
 onlineUsers
 );
 
-console.log(
-"User Disconnected"
-);
-
 });
 
 });
 
-// SERVER START
 const PORT =
 process.env.PORT || 3000;
 
