@@ -11,16 +11,21 @@ const io = new Server(server);
 
 let onlineUsers = 0;
 
-app.set("view engine", "ejs");
+app.set("view engine","ejs");
 
-app.set("views", path.join(__dirname, "views"));
+app.set(
+"views",
+path.join(__dirname,"views")
+);
 
 app.use(express.static("public"));
 
-app.use(express.urlencoded({ extended:true }));
+app.use(express.urlencoded({
+extended:true
+}));
 
 // LOGIN PAGE
-app.get("/", (req,res)=>{
+app.get("/",(req,res)=>{
 
 res.render("login");
 
@@ -29,19 +34,23 @@ res.render("login");
 // LOGIN CHECK
 app.post("/login",(req,res)=>{
 
-const { username,password } = req.body;
+const username =
+req.body.username;
 
-// ADMIN
+const password =
+req.body.password;
+
+// ADMIN LOGIN
 if(
 username === "admin" &&
 password === "12345"
 ){
 
-res.redirect("/admin");
+res.render("admin");
 
 }
 
-// USER
+// USER LOGIN
 else if(
 username === "user" &&
 password === "123"
@@ -54,20 +63,15 @@ res.render("user");
 // WRONG LOGIN
 else{
 
-res.send("Wrong Username or Password");
+res.send(
+"Wrong Username or Password"
+);
 
 }
 
 });
 
-// ADMIN PAGE
-app.get("/admin",(req,res)=>{
-
-res.render("admin");
-
-});
-
-// SOCKET
+// SOCKET CONNECTION
 io.on("connection",(socket)=>{
 
 onlineUsers++;
@@ -77,7 +81,7 @@ io.emit(
 onlineUsers
 );
 
-// TEXT
+// MESSAGE
 socket.on("newMessage",(data)=>{
 
 io.emit(
