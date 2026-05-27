@@ -27,6 +27,7 @@ display:flex;
 flex-direction:column;
 border-radius:15px;
 overflow:hidden;
+box-shadow:0 5px 20px rgba(0,0,0,0.2);
 }
 
 .chat-header{
@@ -37,6 +38,7 @@ display:flex;
 justify-content:space-between;
 align-items:center;
 font-size:18px;
+font-weight:bold;
 }
 
 .chat-box{
@@ -45,6 +47,7 @@ overflow-y:auto;
 padding:10px;
 display:flex;
 flex-direction:column;
+background:#ece5dd;
 }
 
 .message{
@@ -83,15 +86,16 @@ display:flex;
 align-items:center;
 padding:10px;
 background:#f0f0f0;
-gap:5px;
+gap:8px;
 }
 
 #msg{
 flex:1;
-padding:10px;
+padding:12px;
 border:none;
-border-radius:20px;
+border-radius:25px;
 outline:none;
+font-size:15px;
 }
 
 .icon-btn{
@@ -103,6 +107,17 @@ height:42px;
 border-radius:50%;
 cursor:pointer;
 font-size:18px;
+
+display:flex;
+justify-content:center;
+align-items:center;
+
+text-decoration:none;
+flex-shrink:0;
+}
+
+.attach-btn{
+padding-bottom:2px;
 }
 
 #typing{
@@ -148,11 +163,15 @@ id="msg"
 placeholder="Type message..."
 >
 
-<input type="file" id="file" hidden>
-
-<button class="icon-btn" onclick="document.getElementById('file').click()">
+<label for="file" class="icon-btn attach-btn">
 📎
-</button>
+</label>
+
+<input
+type="file"
+id="file"
+style="display:none"
+>
 
 <button class="icon-btn" id="recordBtn">
 🎤
@@ -201,10 +220,12 @@ sendMessage();
 
 });
 
-// FILE
+// FILE UPLOAD
 fileInput.addEventListener("change",()=>{
 
 const file = fileInput.files[0];
+
+if(!file) return;
 
 const reader = new FileReader();
 
@@ -278,7 +299,7 @@ document.getElementById("typing").innerText="";
 
 });
 
-// ONLINE
+// ONLINE USERS
 socket.on("onlineUsers",(count)=>{
 
 document.getElementById("onlineCount").innerText=count;
@@ -326,13 +347,9 @@ reader.readAsDataURL(audioBlob);
 
 };
 
-alert("Recording Started");
-
 }else{
 
 mediaRecorder.stop();
-
-alert("Voice Message Sent");
 
 }
 
