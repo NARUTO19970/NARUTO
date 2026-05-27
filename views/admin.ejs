@@ -21,7 +21,7 @@ height:100vh;
 
 .chat-container{
 width:400px;
-height:90vh;
+height:95vh;
 background:white;
 display:flex;
 flex-direction:column;
@@ -35,6 +35,8 @@ color:white;
 padding:15px;
 display:flex;
 justify-content:space-between;
+align-items:center;
+font-size:18px;
 }
 
 .chat-box{
@@ -66,8 +68,8 @@ border:1px solid #ccc;
 .time{
 font-size:11px;
 margin-top:5px;
-text-align:right;
 opacity:0.7;
+text-align:right;
 }
 
 .seen{
@@ -78,6 +80,7 @@ text-align:right;
 
 .chat-input{
 display:flex;
+align-items:center;
 padding:10px;
 background:#f0f0f0;
 gap:5px;
@@ -91,30 +94,32 @@ border-radius:20px;
 outline:none;
 }
 
-button{
+.icon-btn{
 border:none;
 background:#075E54;
 color:white;
-padding:10px 15px;
+width:42px;
+height:42px;
 border-radius:50%;
 cursor:pointer;
+font-size:18px;
 }
 
 #typing{
-font-size:12px;
-padding-left:10px;
-color:gray;
 height:20px;
-}
-
-audio{
-width:100%;
-margin-top:5px;
+padding-left:10px;
+font-size:12px;
+color:gray;
 }
 
 img{
 max-width:100%;
 border-radius:10px;
+margin-top:5px;
+}
+
+audio{
+width:100%;
 margin-top:5px;
 }
 
@@ -127,7 +132,7 @@ margin-top:5px;
 <div class="chat-container">
 
 <div class="chat-header">
-<span>Admin Chat</span>
+<span>👨‍💻 Admin Chat</span>
 <span>👥 <span id="onlineCount">0</span></span>
 </div>
 
@@ -143,9 +148,19 @@ id="msg"
 placeholder="Type message..."
 >
 
-<input type="file" id="file">
+<input type="file" id="file" hidden>
 
-<button onclick="sendMessage()">➤</button>
+<button class="icon-btn" onclick="document.getElementById('file').click()">
+📎
+</button>
+
+<button class="icon-btn" id="recordBtn">
+🎤
+</button>
+
+<button class="icon-btn" onclick="sendMessage()">
+➤
+</button>
 
 </div>
 
@@ -155,16 +170,10 @@ placeholder="Type message..."
 
 const socket = io();
 
-const messages =
-document.getElementById("messages");
+const messages = document.getElementById("messages");
+const msgInput = document.getElementById("msg");
+const fileInput = document.getElementById("file");
 
-const msgInput =
-document.getElementById("msg");
-
-const fileInput =
-document.getElementById("file");
-
-// SEND MESSAGE
 function sendMessage(){
 
 let msg = msgInput.value;
@@ -182,7 +191,6 @@ msgInput.value="";
 
 }
 
-// ENTER
 msgInput.addEventListener("keypress",(e)=>{
 
 socket.emit("typing","Admin typing...");
@@ -193,14 +201,14 @@ sendMessage();
 
 });
 
-// FILE UPLOAD
+// FILE
 fileInput.addEventListener("change",()=>{
 
 const file = fileInput.files[0];
 
 const reader = new FileReader();
 
-reader.onload = function(){
+reader.onload=function(){
 
 socket.emit("fileUpload",{
 file:reader.result,
@@ -216,7 +224,7 @@ reader.readAsDataURL(file);
 // RECEIVE MESSAGE
 socket.on("newMessage",(data)=>{
 
-let div = document.createElement("div");
+let div=document.createElement("div");
 
 div.classList.add("message");
 
@@ -241,7 +249,7 @@ messages.scrollTop=messages.scrollHeight;
 // RECEIVE FILE
 socket.on("fileUpload",(data)=>{
 
-let div = document.createElement("div");
+let div=document.createElement("div");
 
 div.classList.add("message");
 
@@ -251,20 +259,11 @@ div.classList.add("admin");
 div.classList.add("user");
 }
 
-div.innerHTML=`
-<img src="${data.file}">
-`;
+div.innerHTML=`<img src="${data.file}">`;
 
 messages.appendChild(div);
 
 messages.scrollTop=messages.scrollHeight;
-
-});
-
-// ONLINE
-socket.on("onlineUsers",(count)=>{
-
-document.getElementById("onlineCount").innerText=count;
 
 });
 
@@ -276,6 +275,91 @@ document.getElementById("typing").innerText=msg;
 setTimeout(()=>{
 document.getElementById("typing").innerText="";
 },1000);
+
+});
+
+// ONLINE
+socket.on("onlineUsers",(count)=>{
+
+document.getElementById("onlineCount").innerText=count;
+
+});
+
+// VOICE MESSAGE
+let mediaRecorder;
+let audioChunks=[];
+
+document.getElementById("recordBtn").onclick = async ()=>{
+
+if(!mediaRecorder || mediaRecorder.state==="inactive"){
+
+const stream = await navigator.mediaDevices.getUserMedia({
+audio:true
+});
+
+mediaRecorder = new MediaRecorder(stream);
+
+mediaRecorder.start();
+
+audioChunks=[];
+
+mediaRecorder.ondataavailable=(e)=>{
+audioChunks.push(e.data);
+};
+
+mediaRecorder.onstop=()=>{
+
+const audioBlob = new Blob(audioChunks);
+
+const reader = new FileReader();
+
+reader.onloadend=()=>{
+
+socket.emit("voiceMessage",{
+audio:reader.result,
+sender:"admin"
+});
+
+};
+
+reader.readAsDataURL(audioBlob);
+
+};
+
+alert("Recording Started");
+
+}else{
+
+mediaRecorder.stop();
+
+alert("Voice Message Sent");
+
+}
+
+};
+
+// RECEIVE VOICE
+socket.on("voiceMessage",(data)=>{
+
+let div=document.createElement("div");
+
+div.classList.add("message");
+
+if(data.sender==="admin"){
+div.classList.add("admin");
+}else{
+div.classList.add("user");
+}
+
+div.innerHTML=`
+<audio controls>
+<source src="${data.audio}">
+</audio>
+`;
+
+messages.appendChild(div);
+
+messages.scrollTop=messages.scrollHeight;
 
 });
 
