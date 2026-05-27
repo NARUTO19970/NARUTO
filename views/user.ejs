@@ -33,7 +33,6 @@ overflow:hidden;
 background:#075E54;
 color:white;
 padding:15px;
-font-size:20px;
 display:flex;
 justify-content:space-between;
 }
@@ -50,7 +49,8 @@ flex-direction:column;
 padding:10px;
 margin:5px 0;
 border-radius:10px;
-max-width:70%;
+max-width:75%;
+word-wrap:break-word;
 }
 
 .user{
@@ -63,10 +63,24 @@ background:white;
 border:1px solid #ccc;
 }
 
+.time{
+font-size:11px;
+margin-top:5px;
+text-align:right;
+opacity:0.7;
+}
+
+.seen{
+font-size:11px;
+color:blue;
+text-align:right;
+}
+
 .chat-input{
 display:flex;
 padding:10px;
 background:#f0f0f0;
+gap:5px;
 }
 
 #msg{
@@ -86,6 +100,24 @@ border-radius:50%;
 cursor:pointer;
 }
 
+#typing{
+font-size:12px;
+padding-left:10px;
+color:gray;
+height:20px;
+}
+
+audio{
+width:100%;
+margin-top:5px;
+}
+
+img{
+max-width:100%;
+border-radius:10px;
+margin-top:5px;
+}
+
 </style>
 
 </head>
@@ -99,6 +131,8 @@ cursor:pointer;
 <span>👥 <span id="onlineCount">0</span></span>
 </div>
 
+<div id="typing"></div>
+
 <div class="chat-box" id="messages"></div>
 
 <div class="chat-input">
@@ -109,9 +143,9 @@ id="msg"
 placeholder="Type message..."
 >
 
-<button onclick="sendMessage()">
-➤
-</button>
+<input type="file" id="file">
+
+<button onclick="sendMessage()">➤</button>
 
 </div>
 
@@ -127,19 +161,20 @@ document.getElementById("messages");
 const msgInput =
 document.getElementById("msg");
 
+const fileInput =
+document.getElementById("file");
+
+// SEND MESSAGE
 function sendMessage(){
 
 let msg = msgInput.value;
 
 if(msg.trim()!=""){
 
-socket.emit(
-"newMessage",
-{
+socket.emit("newMessage",{
 message:msg,
 sender:"user"
-}
-);
+});
 
 msgInput.value="";
 
@@ -147,35 +182,100 @@ msgInput.value="";
 
 }
 
+// ENTER
+msgInput.addEventListener("keypress",(e)=>{
+
+socket.emit("typing","User typing...");
+
+if(e.key==="Enter"){
+sendMessage();
+}
+
+});
+
+// FILE UPLOAD
+fileInput.addEventListener("change",()=>{
+
+const file = fileInput.files[0];
+
+const reader = new FileReader();
+
+reader.onload = function(){
+
+socket.emit("fileUpload",{
+file:reader.result,
+sender:"user"
+});
+
+};
+
+reader.readAsDataURL(file);
+
+});
+
+// RECEIVE MESSAGE
 socket.on("newMessage",(data)=>{
 
-let div =
-document.createElement("div");
+let div = document.createElement("div");
 
 div.classList.add("message");
 
 if(data.sender==="user"){
-
 div.classList.add("user");
-
 }else{
-
 div.classList.add("admin");
-
 }
 
-div.innerHTML =
-data.message;
+div.innerHTML=`
+<div>${data.message}</div>
+<div class="time">${data.time}</div>
+<div class="seen">${data.seen}</div>
+`;
 
 messages.appendChild(div);
 
+messages.scrollTop=messages.scrollHeight;
+
 });
 
+// RECEIVE FILE
+socket.on("fileUpload",(data)=>{
+
+let div = document.createElement("div");
+
+div.classList.add("message");
+
+if(data.sender==="user"){
+div.classList.add("user");
+}else{
+div.classList.add("admin");
+}
+
+div.innerHTML=`
+<img src="${data.file}">
+`;
+
+messages.appendChild(div);
+
+messages.scrollTop=messages.scrollHeight;
+
+});
+
+// ONLINE
 socket.on("onlineUsers",(count)=>{
 
-document
-.getElementById("onlineCount")
-.innerText=count;
+document.getElementById("onlineCount").innerText=count;
+
+});
+
+// TYPING
+socket.on("typing",(msg)=>{
+
+document.getElementById("typing").innerText=msg;
+
+setTimeout(()=>{
+document.getElementById("typing").innerText="";
+},1000);
 
 });
 

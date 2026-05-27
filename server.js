@@ -4,144 +4,115 @@ const { Server } = require("socket.io");
 const path = require("path");
 
 const app = express();
-
 const server = http.createServer(app);
-
-const io = new Server(server);
+const io = new Server(server, {
+  maxHttpBufferSize: 1e8
+});
 
 let onlineUsers = 0;
 
-app.set("view engine","ejs");
+app.set("view engine", "ejs");
 
-app.set(
-"views",
-path.join(__dirname,"views")
-);
+app.set("views", path.join(__dirname, "views"));
 
 app.use(express.static("public"));
 
 app.use(express.urlencoded({
-extended:true
+  extended: true
 }));
 
 // LOGIN PAGE
-app.get("/",(req,res)=>{
+app.get("/", (req, res) => {
+  res.render("login");
+});
 
-res.render("login");
+// LOGIN
+app.post("/login", (req, res) => {
+
+  const username = req.body.username;
+  const password = req.body.password;
+
+  // ADMIN
+  if (
+    username === "admin" &&
+    password === "12345"
+  ) {
+    res.render("admin");
+  }
+
+  // USER
+  else if (
+    username === "user" &&
+    password === "123"
+  ) {
+    res.render("user");
+  }
+
+  // WRONG
+  else {
+    res.send("Wrong Username or Password");
+  }
 
 });
 
-// LOGIN CHECK
-app.post("/login",(req,res)=>{
+// SOCKET
+io.on("connection", (socket) => {
 
-const username =
-req.body.username;
+  onlineUsers++;
 
-const password =
-req.body.password;
+  io.emit("onlineUsers", onlineUsers);
 
-// ADMIN LOGIN
-if(
-username === "admin" &&
-password === "12345"
-){
+  // MESSAGE
+  socket.on("newMessage", (data) => {
 
-res.render("admin");
+    io.emit("newMessage", {
+      message: data.message,
+      sender: data.sender,
+      time: new Date().toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit'
+      }),
+      seen: "✔✔ Seen"
+    });
 
-}
+  });
 
-// USER LOGIN
-else if(
-username === "user" &&
-password === "123"
-){
+  // FILE
+  socket.on("fileUpload", (data) => {
 
-res.render("user");
+    io.emit("fileUpload", data);
 
-}
+  });
 
-// WRONG LOGIN
-else{
+  // VOICE
+  socket.on("voiceMessage", (data) => {
 
-res.send(
-"Wrong Username or Password"
-);
+    io.emit("voiceMessage", data);
 
-}
+  });
 
-});
+  // TYPING
+  socket.on("typing", (msg) => {
 
-// SOCKET CONNECTION
-io.on("connection",(socket)=>{
+    socket.broadcast.emit("typing", msg);
 
-onlineUsers++;
+  });
 
-io.emit(
-"onlineUsers",
-onlineUsers
-);
+  // DISCONNECT
+  socket.on("disconnect", () => {
 
-// MESSAGE
-socket.on("newMessage",(data)=>{
+    onlineUsers--;
 
-io.emit(
-"newMessage",
-data
-);
+    io.emit("onlineUsers", onlineUsers);
+
+  });
 
 });
 
-// IMAGE
-socket.on("newImage",(data)=>{
+const PORT = process.env.PORT || 3000;
 
-io.emit(
-"newImage",
-data
-);
+server.listen(PORT, () => {
 
-});
-
-// VOICE
-socket.on("newVoice",(data)=>{
-
-io.emit(
-"newVoice",
-data
-);
-
-});
-
-// TYPING
-socket.on("typing",()=>{
-
-socket.broadcast.emit(
-"typing",
-"Typing..."
-);
-
-});
-
-// DISCONNECT
-socket.on("disconnect",()=>{
-
-onlineUsers--;
-
-io.emit(
-"onlineUsers",
-onlineUsers
-);
-
-});
-
-});
-
-const PORT =
-process.env.PORT || 3000;
-
-server.listen(PORT,()=>{
-
-console.log(
-`Server running on port ${PORT}`
-);
+  console.log(`Server running on port ${PORT}`);
 
 });
